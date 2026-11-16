@@ -133,6 +133,7 @@ REFUGIO_API_URL=https://refugio-api-gs.eastus.cloudapp.azure.com
 # Crie uma conta própria via POST /auth/registrar; não use contas reais.
 REFUGIO_API_EMAIL=troque_aqui
 REFUGIO_API_SENHA=troque_aqui
+REFUGIO_API_TIMEOUT_S=5
 
 # LLM
 LLM_PROVIDER=troque_aqui
@@ -227,7 +228,7 @@ Esperado: `200`. Anote os nomes: o alerta do passo 6 só pode citar refúgios de
 GET {{iaUrl}}/bairros
 ```
 
-Esperado: `200` com a lista de bairros que o modelo conhece.
+Esperado: `200` com a lista de bairros que o modelo conhece, no formato `{ "bairros": ["Itaquera", "Penha", ...] }`.
 
 ### 5. Alerta com o clima real do dia
 
@@ -251,7 +252,7 @@ Esperado: `200`, com o formato abaixo (valores ilustrativos).
   "indice_calor_c": 37.5,
   "risco": "alto",
   "probabilidades": { "baixo": 0.03, "medio": 0.17, "alto": 0.80 },
-  "refugios": [{ "id": 1, "nome": "Biblioteca Municipal da Penha" }],
+  "refugios": [{ "id": 1, "nome": "Biblioteca Municipal da Penha", "vagas_disponiveis": 18 }],
   "refugios_consultados": true,
   "alerta": "Hoje vai fazer muito calor na Penha. Vá para a Biblioteca Municipal da Penha, onde é fresco. Beba água. Se passar mal, ligue 192.",
   "origem_texto": "llm"
@@ -260,7 +261,7 @@ Esperado: `200`, com o formato abaixo (valores ilustrativos).
 
 ### 6. Alerta simulando calor extremo
 
-Os campos `temperatura_c` e `umidade_pct` são opcionais e substituem o clima real. Servem para demonstrar e testar.
+Os campos `temperatura_c` e `umidade_pct` são opcionais e substituem o clima real. Servem para demonstrar e testar, e vêm juntos: mandar só um deles devolve `422`.
 
 ```
 POST {{iaUrl}}/alerta
