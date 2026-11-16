@@ -100,6 +100,30 @@ RETRY_AFTER_MAX_S = 5.0
 # Idoso lê melhor mensagem curta. 400 caracteres cabem em uma tela de celular com fonte grande.
 ALERTA_MAX_CARACTERES = 400
 TELEFONE_SAMU = "192"
+# Quantos refúgios com vaga entram no alerta. Mais que dois vira lista, e lista confunde.
+MAX_REFUGIOS_NO_ALERTA = 2
+# Palavras que indicam que o texto cita um lugar específico. Vêm dos tipos de refúgio da API
+# .NET (TipoRefugio) e de lugares que o LLM costuma sugerir por conta própria. Se uma delas
+# aparecer fora do nome de um refúgio devolvido pela API, o texto é recusado.
+PALAVRAS_DE_LUGAR = (
+    "biblioteca", "centro comunitario", "ubs", "escola", "igreja",
+    "posto de saude", "shopping", "sesc", "clube", "ginasio",
+)
+# "CEU" só conta em maiúsculas: em minúsculas "céu" é o céu, não o equipamento público.
+SIGLA_CEU = "CEU"
+# Afirmações sobre o refúgio que a API .NET não informa. Nos testes com llama3.1 o modelo
+# inventou "ar-condicionado"; prometer o que o lugar pode não ter é pior que não dizer nada.
+AFIRMACOES_PROIBIDAS = ("ar condicionado", "ar-condicionado", "climatizad")
+# Os exemplos do prompt usam nomes com "Exemplo". Se a palavra aparece, o LLM copiou o exemplo.
+MARCA_DOS_EXEMPLOS = "exemplo"
+
+# --- LLM --------------------------------------------------------------------
+
+# Temperatura baixa: queremos texto previsível e fiel aos dados, não criativo.
+LLM_TEMPERATURA = 0.3
+# Mantém o modelo na memória do Ollama entre alertas. Carregar o llama3.1 do disco leva
+# vários segundos e estouraria o timeout da primeira chamada de cada rajada.
+OLLAMA_KEEP_ALIVE = "30m"
 
 
 @dataclass(frozen=True)
@@ -112,6 +136,8 @@ class Config:
     # Timeout curto: a VM da Azure pode estar desligada e o alerta não deve esperar por ela.
     refugio_api_timeout_s: float
     llm_provider: str
+    # Endereço do servidor do LLM. Para o Ollama local: http://localhost:11434.
+    llm_url: str
     llm_api_key: str
     llm_model: str
     # O LLM é o passo mais lento; acima disso o serviço usa o texto padrão.
@@ -130,6 +156,9 @@ _VALOR_DE_EXEMPLO = "troque_aqui"
 _PADROES = {
     "REFUGIO_API_URL": "https://refugio-api-gs.eastus.cloudapp.azure.com",
     "REFUGIO_API_TIMEOUT_S": "5",
+    "LLM_PROVIDER": "ollama",
+    "LLM_URL": "http://localhost:11434",
+    "LLM_MODEL": "llama3.1",
     "LLM_TIMEOUT_S": "15",
     "CLIMA_TIMEOUT_S": "8",
 }
@@ -162,6 +191,7 @@ def carregar_config(env: Mapping[str, str] | None = None) -> Config:
         refugio_api_senha=ler("REFUGIO_API_SENHA"),
         refugio_api_timeout_s=_ler_segundos(ler("REFUGIO_API_TIMEOUT_S"), "REFUGIO_API_TIMEOUT_S"),
         llm_provider=ler("LLM_PROVIDER").lower(),
+        llm_url=ler("LLM_URL").rstrip("/"),
         llm_api_key=ler("LLM_API_KEY"),
         llm_model=ler("LLM_MODEL"),
         llm_timeout_s=_ler_segundos(ler("LLM_TIMEOUT_S"), "LLM_TIMEOUT_S"),

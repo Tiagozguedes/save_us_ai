@@ -66,7 +66,7 @@ flowchart LR
 | Linguagem | Python 3.11+ | Todo o módulo de IA |
 | API | FastAPI + Uvicorn | Endpoints `/alerta`, `/bairros`, `/health` e Swagger em `/docs` |
 | Machine Learning | scikit-learn, pandas, joblib | Treino, avaliação e carga do classificador de risco |
-| IA generativa | `[A DEFINIR: provedor e modelo — API ou Ollama local]` | Redação do alerta |
+| IA generativa | Ollama local com `llama3.1` (8B) | Redação do alerta, sem custo por chamada e sem dado saindo da máquina |
 | Clima | Open-Meteo | Temperatura e umidade por latitude e longitude |
 | Demografia | IBGE, Censo 2022 (agregados por distrito) | Proporção de população com 60 anos ou mais e centroide de cada bairro |
 | Integração | httpx | Chamadas à API .NET do Refúgio |
@@ -88,7 +88,7 @@ flowchart LR
 
 - **O rótulo de risco é derivado, não observado.** Não existe dado público de risco de calor por bairro. O rótulo vem do índice de calor combinado com a proporção de idosos. O modelo aprende essa regra, então uma métrica alta não prova acerto no mundo real. O que as métricas medem aqui é a consistência com a regra.
 - O modelo não leva em conta ilha de calor urbana, condições de moradia nem saúde individual.
-- O LLM pode errar ou escrever texto fora do padrão. Por isso o serviço valida a resposta (tamanho, refúgios citados) e tem texto padrão de reserva.
+- O LLM pode errar ou escrever texto fora do padrão. Por isso o serviço valida a resposta (tamanho, SAMU 192 no risco alto, só refúgios devolvidos pela API, nenhum telefone ou endereço, nada sobre o lugar que a API não informa) e tem texto padrão de reserva. Nos testes com o llama3.1 ele chegou a inventar "ar-condicionado" no refúgio, e a validação passou a recusar isso.
 - O alerta não substitui orientação médica. Em sinais graves, o texto manda ligar para o SAMU (192).
 - O serviço não tem autenticação na versão de demonstração.
 
@@ -98,7 +98,7 @@ flowchart LR
 
 - Python 3.11 ou superior
 - A API .NET do Refúgio acessível (publicada ou local). Se estiver na VM da Azure, ligue antes: `az vm start -g rg-refugio-api -n vm-refugio-api` (leva cerca de um minuto)
-- Chave do provedor de LLM (ou Ollama instalado)
+- [Ollama](https://ollama.com) instalado e rodando, com o modelo baixado: `ollama pull llama3.1` (cerca de 4,9 GB). Sem ele o serviço funciona, mas todo alerta sai com o texto padrão.
 
 ### Passo a passo
 
@@ -114,7 +114,7 @@ pip install -r requirements.txt
 
 # 3. Configuração (nunca versione o .env)
 cp .env.example .env             # Windows: copy .env.example .env
-# edite o .env com a URL da API .NET, usuário de serviço e chave do LLM
+# edite o .env com a URL da API .NET e a conta de serviço; o LLM já vem configurado para o Ollama local
 
 # 4. Treinar o modelo (cerca de 2 minutos; gera models/modelo_risco.joblib)
 python -m training.train
@@ -141,10 +141,12 @@ REFUGIO_API_EMAIL=troque_aqui
 REFUGIO_API_SENHA=troque_aqui
 REFUGIO_API_TIMEOUT_S=5
 
-# LLM
-LLM_PROVIDER=troque_aqui
-LLM_API_KEY=troque_aqui
-LLM_MODEL=troque_aqui
+# LLM (Ollama local: instale em https://ollama.com e rode "ollama pull llama3.1")
+LLM_PROVIDER=ollama
+LLM_URL=http://localhost:11434
+# O Ollama local não usa chave; o campo fica para um provedor de API no futuro.
+LLM_API_KEY=
+LLM_MODEL=llama3.1
 LLM_TIMEOUT_S=15
 
 # Serviço
@@ -165,6 +167,7 @@ app/
     bairros.py          catálogo de bairros, busca sem acento
     risco.py            carrega o modelo e classifica
     llm.py              chamada ao LLM e validação do texto
+    texto_padrao.py     texto de reserva por nível de risco
     alerta.py           orquestra o fluxo completo
   prompts/alerta.txt    prompt do LLM
   content/guia_calor.txt
@@ -338,7 +341,7 @@ Esperado: `422` com o campo inválido apontado.
 
 **API .NET fora do ar:** desligue a VM da Azure (`az vm deallocate -g rg-refugio-api -n vm-refugio-api`) e repita o passo 6. Esperado: `200`, `refugios_consultados: false` e um alerta sem refúgio específico.
 
-**LLM indisponível:** coloque uma chave inválida no `.env`, reinicie o serviço e repita o passo 6. Esperado: `200`, `origem_texto: "fallback"` e o texto padrão do nível de risco.
+**LLM indisponível:** feche o Ollama (ou ponha `LLM_MODEL=modelo-que-nao-existe` no `.env` e reinicie o serviço) e repita o passo 6. Esperado: `200`, `origem_texto: "fallback"` e o texto padrão do nível de risco.
 
 ---
 
