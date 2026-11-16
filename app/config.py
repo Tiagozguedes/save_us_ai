@@ -27,12 +27,62 @@ CAMINHO_GUIA_CALOR = RAIZ / "app" / "content" / "guia_calor.txt"
 # Ordem fixa das classes: o modelo, as probabilidades e os textos padrão usam a mesma.
 NIVEIS_RISCO = ("baixo", "medio", "alto")
 
+# --- Dados de bairro (IBGE, Censo 2022) -------------------------------------
+
+# "Bairro" no serviço = distrito do IBGE. Em São Paulo os 96 distritos têm os mesmos nomes
+# usados no cadastro de refúgios da API .NET (Penha, Vila Matilde, Itaquera, Tatuapé).
+CAMINHO_BAIRROS = PASTA_DADOS_PROCESSADOS / "bairros.csv"
+CAMINHO_DATASET = PASTA_DADOS_PROCESSADOS / "dataset.csv"
+CODIGO_MUNICIPIO_SP = "3550308"
+_IBGE_AGREGADOS = "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios"
+IBGE_DEMOGRAFIA_DISTRITOS_URL = f"{_IBGE_AGREGADOS}/Agregados_por_Distrito_csv/Agregados_por_distritos_demografia_BR.zip"
+IBGE_MALHA_DISTRITOS_SP_URL = f"{_IBGE_AGREGADOS}/malha_com_atributos/distritos/gpkg/UF/SP/SP_distritos_CD2022.gpkg"
+# Variáveis do dicionário de dados do IBGE (aba "Dicionário não PCT").
+IBGE_VAR_POPULACAO = "V01006"  # Quantidade de moradores
+IBGE_VARS_60_MAIS = ("V01040", "V01041")  # 60 a 69 anos, 70 anos ou mais
+
 # --- Clima (Open-Meteo) -----------------------------------------------------
 
 OPEN_METEO_PREVISAO_URL = "https://api.open-meteo.com/v1/forecast"
 OPEN_METEO_HISTORICO_URL = "https://archive-api.open-meteo.com/v1/archive"
 # Dias e horas sempre no horário de São Paulo, o mesmo fuso que a API .NET usa para as vagas.
 FUSO_HORARIO = "America/Sao_Paulo"
+
+# Histórico do treino: três anos completos, com as ondas de calor de 2023 e 2024.
+HISTORICO_INICIO = "2023-01-01"
+HISTORICO_FIM = "2025-12-31"
+# ERA5-Land é a reanálise de maior resolução do Open-Meteo (grade de 0,1°, ~11 km). Vários
+# distritos caem na mesma célula; baixamos uma vez por célula para respeitar o limite
+# gratuito do Open-Meteo (pedir os 96 distritos um a um passaria do limite por hora).
+HISTORICO_MODELO = "era5_land"
+HISTORICO_GRADE_GRAUS = 0.1
+
+# --- Rótulo de risco (derivado, não observado) ------------------------------
+#
+# Não existe dado público de "risco de calor por bairro". O rótulo é calculado por regra:
+#   índice ajustado = índice de calor da pior hora
+#                     + PESO_IDOSOS_C_POR_PP × (% de 60+ do bairro − % de 60+ da cidade)
+# e comparado com as faixas da NOAA. O modelo aprende essa regra; a métrica mede
+# consistência com ela, não acerto no mundo real (ver docs/avaliacao.md).
+
+# Faixas da NOAA: "Caution" começa em 80 °F (26,7 °C) e "Extreme caution" em 90 °F (32,2 °C).
+# Para idoso, "Extreme caution" já é risco alto: é onde a NOAA cita insolação como possível.
+LIMIAR_RISCO_MEDIO_C = 26.7
+LIMIAR_RISCO_ALTO_C = 32.2
+# Cada ponto percentual de idosos acima da média da cidade soma 0,2 °C ao índice. Um bairro
+# 10 p.p. mais idoso que a cidade sobe 2 °C, o que muda a faixa em dias de fronteira sem
+# tornar a proporção de idosos mais importante que o próprio calor.
+PESO_IDOSOS_C_POR_PP = 0.2
+
+# --- Treino -----------------------------------------------------------------
+
+# Entradas do modelo, nesta ordem. O índice de calor NÃO entra: o modelo precisa aprender a
+# relação não linear entre temperatura e umidade, e é isso que separa RF de regressão logística.
+FEATURES = ("temperatura_c", "umidade_pct", "pct_60_mais")
+# Divisão por tempo: treina em 2023-2024 e testa em 2025. Dividir ao acaso colocaria o mesmo
+# dia (de distritos vizinhos, com clima quase igual) no treino e no teste.
+INICIO_TESTE = "2025-01-01"
+SEMENTE = 42
 
 # --- Integração com a API .NET ----------------------------------------------
 
