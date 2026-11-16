@@ -96,7 +96,7 @@ flowchart LR
 
 ### Pré-requisitos
 
-- Python 3.11 ou superior
+- Python 3.11 ou superior (desenvolvido e testado no 3.15)
 - A API .NET do Refúgio acessível (publicada ou local). Se estiver na VM da Azure, ligue antes: `az vm start -g rg-refugio-api -n vm-refugio-api` (leva cerca de um minuto)
 - [Ollama](https://ollama.com) instalado e rodando, com o modelo baixado: `ollama pull llama3.1` (cerca de 4,9 GB). Sem ele o serviço funciona, mas todo alerta sai com o texto padrão.
 
@@ -104,8 +104,8 @@ flowchart LR
 
 ```bash
 # 1. Clonar e entrar na pasta
-git clone <URL-DO-REPOSITORIO>
-cd <PASTA-DO-REPOSITORIO>
+git clone https://github.com/Tiagozguedes/save_us_ai.git
+cd save_us_ai
 
 # 2. Ambiente virtual e dependências
 python -m venv .venv
@@ -125,6 +125,8 @@ python -m training.build_dataset
 # 5. Subir o serviço
 uvicorn app.main:app --reload --port 8000
 # Swagger: http://localhost:8000/docs
+# Na subida, o serviço carrega o llama3.1 no Ollama em segundo plano (até ~30 s na primeira vez).
+# Alertas pedidos nesse intervalo saem com o texto padrão (origem_texto: "fallback").
 
 # 6. Rodar os testes
 pytest -v
@@ -342,6 +344,10 @@ Esperado: `422` com o campo inválido apontado.
 **API .NET fora do ar:** desligue a VM da Azure (`az vm deallocate -g rg-refugio-api -n vm-refugio-api`) e repita o passo 6. Esperado: `200`, `refugios_consultados: false` e um alerta sem refúgio específico.
 
 **LLM indisponível:** feche o Ollama (ou ponha `LLM_MODEL=modelo-que-nao-existe` no `.env` e reinicie o serviço) e repita o passo 6. Esperado: `200`, `origem_texto: "fallback"` e o texto padrão do nível de risco.
+
+**Open-Meteo fora do ar (ou sem internet):** repita o passo 5 (clima real). Esperado: `503` com a dica de enviar `temperatura_c` e `umidade_pct`. O passo 6, com clima simulado, continua funcionando.
+
+**Modelo não treinado:** apague `models/modelo_risco.joblib` e reinicie o serviço. Esperado: `/health` com `modelo_carregado: false` e `/alerta` com `503` mandando rodar `python -m training.train`.
 
 ---
 
