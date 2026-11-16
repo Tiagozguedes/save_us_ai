@@ -133,6 +133,7 @@ REFUGIO_API_URL=https://refugio-api-gs.eastus.cloudapp.azure.com
 # Crie uma conta própria via POST /auth/registrar; não use contas reais.
 REFUGIO_API_EMAIL=troque_aqui
 REFUGIO_API_SENHA=troque_aqui
+REFUGIO_API_TIMEOUT_S=5
 
 # LLM
 LLM_PROVIDER=troque_aqui
