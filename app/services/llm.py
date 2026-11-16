@@ -161,7 +161,8 @@ def montar_prompt(dados: DadosAlerta) -> str:
     linhas = [
         f"Bairro: {dados.bairro}",
         f"Risco de calor hoje: {NOMES_RISCO[dados.risco]}",
-        f"Temperatura na hora mais quente: {_numero(dados.temperatura_c)} °C",
+        # O texto pede graus inteiros; arredondamos aqui porque o llama3.1 trunca (26,7 virava "26").
+        f"Temperatura na hora mais quente: {round(dados.temperatura_c)} graus ({_numero(dados.temperatura_c)} °C)",
         f"Umidade do ar: {_numero(dados.umidade_pct, 0)}%",
         f"Sensação térmica (índice de calor): {_numero(dados.indice_calor_c)} °C",
         f"Refúgios abertos com vaga: {lista}",
