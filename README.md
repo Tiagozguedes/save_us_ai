@@ -68,7 +68,7 @@ flowchart LR
 | Machine Learning | scikit-learn, pandas, joblib | Treino, avaliação e carga do classificador de risco |
 | IA generativa | `[A DEFINIR: provedor e modelo — API ou Ollama local]` | Redação do alerta |
 | Clima | Open-Meteo | Temperatura e umidade por latitude e longitude |
-| Demografia | IBGE, Censo 2022 | Proporção de população com 60 anos ou mais por bairro |
+| Demografia | IBGE, Censo 2022 (agregados por distrito) | Proporção de população com 60 anos ou mais e centroide de cada bairro |
 | Integração | httpx | Chamadas à API .NET do Refúgio |
 | Testes | pytest | Testes do modelo, do serviço e dos cenários de falha |
 | Configuração | python-dotenv | Variáveis de ambiente (`.env`, fora do Git) |
@@ -76,9 +76,13 @@ flowchart LR
 ### Modelo de ML
 
 - **Tipo:** classificação em 3 classes (baixo, médio, alto).
-- **Entradas:** temperatura (°C), umidade relativa (%) e % da população com 60 anos ou mais.
-- **Algoritmo:** `[A DEFINIR: Random Forest ou Regressão Logística]`, comparado com um baseline por regra de temperatura.
-- **Métricas:** macro-F1 e matriz de confusão (ver `docs/avaliacao.md`).
+- **Bairro = distrito do IBGE.** São os 96 distritos da cidade de São Paulo, com os mesmos nomes do cadastro de refúgios da API .NET.
+- **Entradas:** temperatura (°C), umidade relativa (%) e % da população com 60 anos ou mais. O clima é o da **pior hora do dia** (maior índice de calor), tanto no treino quanto em produção.
+- **Dados:** 105.216 linhas (96 distritos × 1.096 dias, 2023 a 2025). Clima horário histórico do Open-Meteo (ERA5-Land) e % de 60+ do Censo 2022.
+- **Rótulo (derivado):** índice de calor da NOAA da pior hora, somado a 0,2 °C por ponto percentual de idosos acima da média da cidade (17,66%), comparado com as faixas da NOAA: médio a partir de 26,7 °C, alto a partir de 32,2 °C.
+- **Algoritmo:** **Random Forest** (servido), comparado com regressão logística e com um baseline por regra de temperatura do ar.
+- **Validação:** treino em 2023–2024 e teste em 2025 (divisão por tempo). Hiperparâmetros da RF escolhidos por validação cruzada por ano.
+- **Métricas no teste (macro-F1):** baseline 0,778 · regressão logística 0,957 · Random Forest 0,973. Matrizes de confusão em `models/metricas.json` e análise em `docs/avaliacao.md`.
 
 ### Limitações
 
@@ -112,9 +116,11 @@ pip install -r requirements.txt
 cp .env.example .env             # Windows: copy .env.example .env
 # edite o .env com a URL da API .NET, usuário de serviço e chave do LLM
 
-# 4. Preparar os dados e treinar o modelo
-python -m training.build_dataset
+# 4. Treinar o modelo (cerca de 2 minutos; gera models/modelo_risco.joblib)
 python -m training.train
+# Opcional: refazer os dados do zero (baixa ~20 MB do IBGE e o histórico do Open-Meteo).
+# data/processed/ já vem no repositório, então este passo só é preciso para atualizar.
+python -m training.build_dataset
 
 # 5. Subir o serviço
 uvicorn app.main:app --reload --port 8000
