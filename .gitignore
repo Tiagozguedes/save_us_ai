@@ -21,3 +21,6 @@ data/raw/*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Modelo treinado: depende da versão do scikit-learn; gere com python -m training.train
+models/*.joblib
