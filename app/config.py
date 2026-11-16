@@ -124,6 +124,9 @@ LLM_TEMPERATURA = 0.3
 # Mantém o modelo na memória do Ollama entre alertas. Carregar o llama3.1 do disco leva
 # vários segundos e estouraria o timeout da primeira chamada de cada rajada.
 OLLAMA_KEEP_ALIVE = "30m"
+# Na subida do serviço o modelo é carregado em segundo plano. A primeira carga do llama3.1
+# levou ~28 s nos testes, então este timeout é bem maior que o LLM_TIMEOUT_S dos alertas.
+OLLAMA_TIMEOUT_AQUECIMENTO_S = 120.0
 
 
 @dataclass(frozen=True)

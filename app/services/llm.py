@@ -26,6 +26,7 @@ from app.config import (
     LLM_TEMPERATURA,
     MARCA_DOS_EXEMPLOS,
     OLLAMA_KEEP_ALIVE,
+    OLLAMA_TIMEOUT_AQUECIMENTO_S,
     PALAVRAS_DE_LUGAR,
     SIGLA_CEU,
     TELEFONE_SAMU,
@@ -91,6 +92,24 @@ class OllamaLLM:
             raise LLMIndisponivel(f"Ollama falhou: {type(erro).__name__}") from erro
         except (ValueError, KeyError, TypeError):
             raise LLMIndisponivel("Ollama respondeu em formato inesperado") from None
+
+    def aquecer(self) -> bool:
+        """Carrega o modelo na memória do Ollama, sem gerar texto.
+
+        O Ollama carrega o modelo quando recebe um /api/chat sem mensagens. Chamado em
+        segundo plano na subida do serviço, para o primeiro alerta não estourar o timeout.
+
+        Retorno:
+            True se o modelo ficou pronto; False se o Ollama não respondeu (o serviço segue,
+            e os alertas usam o texto padrão até ele voltar).
+        """
+        corpo = {"model": self._modelo, "messages": [], "keep_alive": OLLAMA_KEEP_ALIVE}
+        try:
+            self._http.post("/api/chat", json=corpo, timeout=OLLAMA_TIMEOUT_AQUECIMENTO_S).raise_for_status()
+            return True
+        except httpx.HTTPError as erro:
+            logger.warning("Não foi possível carregar o modelo %s no Ollama: %s", self._modelo, type(erro).__name__)
+            return False
 
 
 def criar_llm(config: Config) -> ClienteLLM | None:
