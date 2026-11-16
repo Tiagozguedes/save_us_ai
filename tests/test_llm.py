@@ -49,7 +49,7 @@ def test_prompt_leva_dados_e_guia_sem_placeholder_sobrando():
 
     assert "Bairro: Penha" in prompt
     assert "Risco de calor hoje: alto" in prompt
-    assert "38,0 °C" in prompt
+    assert "38 graus (38,0 °C)" in prompt
     assert BIBLIOTECA in prompt
     assert "GUIA DO CALOR" in prompt
     assert "$" not in prompt
@@ -184,3 +184,9 @@ def test_texto_padrao_baixo_nao_assusta():
     texto = texto_padrao("baixo", "Penha", [])
 
     assert "perigoso" not in texto and "192" not in texto
+
+
+def test_prompt_arredonda_a_temperatura_para_o_texto():
+    dados = dataclasses.replace(ALTO, temperatura_c=26.7)
+
+    assert "27 graus (26,7 °C)" in montar_prompt(dados)
