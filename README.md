@@ -159,8 +159,10 @@ app/
   config.py             leitura do .env
   schemas.py            contratos de entrada e saída
   services/
-    clima.py            Open-Meteo
+    clima.py            Open-Meteo (pior hora do dia)
+    indice_calor.py     índice de calor da NOAA
     refugio_client.py   login e consulta na API .NET
+    bairros.py          catálogo de bairros, busca sem acento
     risco.py            carrega o modelo e classifica
     llm.py              chamada ao LLM e validação do texto
     alerta.py           orquestra o fluxo completo
@@ -168,9 +170,13 @@ app/
   content/guia_calor.txt
 training/
   build_dataset.py      baixa e junta clima, IBGE e rótulos
+  ibge.py               lê demografia e malha do Censo 2022
+  clima_historico.py    histórico ERA5-Land do Open-Meteo
+  rotulo.py             regra do rótulo de risco (derivado)
+  baseline.py           regra por temperatura para comparar
   train.py              treina, avalia e salva o modelo
 data/                   dados brutos e processados
-models/                 modelo treinado (.joblib)
+models/                 modelo treinado (.joblib, fora do Git) e metricas.json
 tests/                  testes pytest
 docs/avaliacao.md       métricas, casos de teste e análise
 ```
