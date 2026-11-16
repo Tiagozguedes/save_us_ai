@@ -27,6 +27,13 @@ CAMINHO_GUIA_CALOR = RAIZ / "app" / "content" / "guia_calor.txt"
 # Ordem fixa das classes: o modelo, as probabilidades e os textos padrão usam a mesma.
 NIVEIS_RISCO = ("baixo", "medio", "alto")
 
+# --- Clima (Open-Meteo) -----------------------------------------------------
+
+OPEN_METEO_PREVISAO_URL = "https://api.open-meteo.com/v1/forecast"
+OPEN_METEO_HISTORICO_URL = "https://archive-api.open-meteo.com/v1/archive"
+# Dias e horas sempre no horário de São Paulo, o mesmo fuso que a API .NET usa para as vagas.
+FUSO_HORARIO = "America/Sao_Paulo"
+
 # --- Integração com a API .NET ----------------------------------------------
 
 # Tamanho de página pedido à listagem. O máximo da API .NET é 50 e um bairro tem poucos
