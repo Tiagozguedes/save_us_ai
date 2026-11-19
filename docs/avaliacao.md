@@ -160,7 +160,7 @@ Nenhum desses problemas muda o sentido do alerta, então a validação não os r
 
 ### Teste manual com o serviço real (16/11/2026)
 
-Uvicorn com o modelo treinado, Open-Meteo de verdade e Ollama local. A VM da API .NET estava desligada.
+Uvicorn com o modelo treinado, Open-Meteo de verdade e Ollama local. A API .NET não estava acessível nesse dia.
 
 | Passo do README | Resultado |
 |---|---|
@@ -174,7 +174,20 @@ Uvicorn com o modelo treinado, Open-Meteo de verdade e Ollama local. A VM da API
 | 8. API .NET fora do ar | `200`, `refugios_consultados: false`, alerta sem refúgio |
 | 8. LLM indisponível (`LLM_MODEL` inexistente) | `200`, `origem_texto: "fallback"`, texto padrão do risco alto |
 
-Os passos 2 e 3 (login e listagem na API .NET) e o alerta citando refúgios reais ficam para quando a VM estiver ligada. A integração está coberta pelos testes com as respostas no formato do `RefugioResponse` do .NET.
+Os passos 2 e 3 (login e listagem na API .NET) e o alerta citando refúgios reais foram feitos depois, com a API publicada no Render.
+
+### Integração com a API .NET no Render (19/11/2026)
+
+Serviço com o modelo treinado, apontando para `https://refugio-net.onrender.com` com a conta de teste `maria@email.com` (IDOSO). O Ollama estava desligado, então os textos saíram do fallback. Clima simulado: 40 °C e 30% de umidade.
+
+| Bairro | Resultado |
+|---|---|
+| Login (`POST /auth/login`) | `200`, token recebido |
+| Penha | `200`, alto, `refugios_consultados: true`; CEU Penha, Biblioteca Municipal da Penha e dois refúgios de teste ("Sala Unica") criados na validação da API; o alerta cita o CEU Penha |
+| Itaquera | `200`, alto, Centro Comunitário Itaquera no alerta |
+| Tatuapé | `200`, alto, nenhum refúgio (o único cadastrado lá está inativo); alerta genérico com o 192 |
+
+A listagem filtra por `ativo=true` e o serviço descarta refúgios sem vaga, como nos testes com respostas no formato do `RefugioResponse` do .NET.
 
 ## 9. Limitações e uso responsável
 
