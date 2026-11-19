@@ -353,13 +353,13 @@ Esperado: `422` com o campo inválido apontado.
 
 ## Uso de IA generativa
 
-`[A PREENCHER PELO GRUPO — o edital pede esta declaração]`
+IA foi usada de forma bem relevante no projeto, pois participou de forma assistente no planejamento do produto, arquitetura e criação de código com supervisão humana. Teve um papel ainda maior na correção de erros e criação de testes.
 
 | Ferramenta | Para que foi usada |
 |---|---|
-| `[ferramenta]` | `[ex.: apoio no planejamento, explicação de erros, revisão de texto]` |
+| Claude Code (Anthropic) | Planejamento do produto e da arquitetura, escrita de código, correção de erros, criação de testes e revisão da documentação |
 
-Todo código e texto gerado por IA foi lido, testado e revisado pelo grupo.
+Ao final, o código e texto gerado por IA foi lido, testado e revisado pelo grupo.
 
 ## Fontes de dados
 
