@@ -37,7 +37,7 @@ def montar_cliente(modelo=None, refugios=None, llm=None, obter_clima=None, confi
 
 
 def test_api_net_fora_do_ar_devolve_alerta_sem_refugio(pecas, cliente):
-    pecas["refugios"].erro = RefugioIndisponivel("VM desligada")
+    pecas["refugios"].erro = RefugioIndisponivel("API .NET fora do ar")
 
     corpo = cliente.post("/alerta", json=CALOR_EXTREMO).json()
 
@@ -76,7 +76,7 @@ CONFIG_NET = carregar_config({"REFUGIO_API_URL": URL_NET, "REFUGIO_API_EMAIL": "
 @pytest.mark.parametrize(
     "falha",
     [
-        httpx.ConnectError("conexão recusada"),  # VM desligada (az vm deallocate)
+        httpx.ConnectError("conexão recusada"),  # API .NET fora do ar
         httpx.ConnectTimeout("sem resposta"),
         httpx.Response(429, headers={"Retry-After": "60"}),
         httpx.Response(500),
