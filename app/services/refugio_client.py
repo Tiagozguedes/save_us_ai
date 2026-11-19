@@ -128,7 +128,7 @@ class RefugioClient:
         try:
             return self._http.request(metodo, rota, **kwargs)
         except httpx.HTTPError as erro:
-            # Inclui timeout e conexão recusada (VM da Azure desligada).
+            # Inclui timeout e conexão recusada (API .NET fora do ar).
             raise RefugioIndisponivel(f"Falha ao chamar {rota}: {type(erro).__name__}") from erro
 
 

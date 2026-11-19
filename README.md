@@ -97,7 +97,7 @@ flowchart LR
 ### Pré-requisitos
 
 - Python 3.11 ou superior (desenvolvido e testado no 3.15)
-- A API .NET do Refúgio acessível (publicada ou local). Se estiver na VM da Azure, ligue antes: `az vm start -g rg-refugio-api -n vm-refugio-api` (leva cerca de um minuto)
+- A API .NET do Refúgio acessível: publicada em https://refugio-net.onrender.com ou rodando local. No plano gratuito do Render ela dorme sem uso; abra `https://refugio-net.onrender.com/health` antes e espere responder (cerca de um minuto), senão o primeiro alerta sai sem refúgios
 - [Ollama](https://ollama.com) instalado e rodando, com o modelo baixado: `ollama pull llama3.1` (cerca de 4,9 GB). Sem ele o serviço funciona, mas todo alerta sai com o texto padrão.
 
 ### Passo a passo
@@ -136,7 +136,7 @@ pytest -v
 
 ```env
 # API .NET do Refúgio
-REFUGIO_API_URL=https://refugio-api-gs.eastus.cloudapp.azure.com
+REFUGIO_API_URL=https://refugio-net.onrender.com
 # Conta de serviço do tipo IDOSO (somente leitura de refúgios).
 # Crie uma conta própria via POST /auth/registrar; não use contas reais.
 REFUGIO_API_EMAIL=troque_aqui
@@ -196,7 +196,7 @@ Crie duas variáveis de coleção:
 
 | Variável | Valor |
 |---|---|
-| `baseUrl` | `https://refugio-api-gs.eastus.cloudapp.azure.com` (API .NET) |
+| `baseUrl` | `https://refugio-net.onrender.com` (API .NET) |
 | `iaUrl` | `http://localhost:8000` (serviço de IA) |
 
 Em todas as requisições com corpo, use o header `Content-Type: application/json`.
@@ -341,7 +341,7 @@ POST {{iaUrl}}/alerta
 
 Esperado: `422` com o campo inválido apontado.
 
-**API .NET fora do ar:** desligue a VM da Azure (`az vm deallocate -g rg-refugio-api -n vm-refugio-api`) e repita o passo 6. Esperado: `200`, `refugios_consultados: false` e um alerta sem refúgio específico.
+**API .NET fora do ar:** ponha `REFUGIO_API_URL=http://localhost:9` no `.env` (endereço onde nada responde), reinicie o serviço e repita o passo 6. Esperado: `200`, `refugios_consultados: false` e um alerta sem refúgio específico.
 
 **LLM indisponível:** feche o Ollama (ou ponha `LLM_MODEL=modelo-que-nao-existe` no `.env` e reinicie o serviço) e repita o passo 6. Esperado: `200`, `origem_texto: "fallback"` e o texto padrão do nível de risco.
 

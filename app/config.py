@@ -136,7 +136,7 @@ class Config:
     refugio_api_url: str
     refugio_api_email: str
     refugio_api_senha: str
-    # Timeout curto: a VM da Azure pode estar desligada e o alerta não deve esperar por ela.
+    # Timeout curto: a API pode estar fora do ar (ou acordando no Render) e o alerta não deve esperar por ela.
     refugio_api_timeout_s: float
     llm_provider: str
     # Endereço do servidor do LLM. Para o Ollama local: http://localhost:11434.
@@ -157,7 +157,7 @@ class Config:
 _VALOR_DE_EXEMPLO = "troque_aqui"
 
 _PADROES = {
-    "REFUGIO_API_URL": "https://refugio-api-gs.eastus.cloudapp.azure.com",
+    "REFUGIO_API_URL": "https://refugio-net.onrender.com",
     "REFUGIO_API_TIMEOUT_S": "5",
     "LLM_PROVIDER": "ollama",
     "LLM_URL": "http://localhost:11434",

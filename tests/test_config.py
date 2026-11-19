@@ -8,7 +8,7 @@ from app.config import carregar_config
 def test_usa_padroes_quando_variaveis_faltam():
     config = carregar_config({})
 
-    assert config.refugio_api_url == "https://refugio-api-gs.eastus.cloudapp.azure.com"
+    assert config.refugio_api_url == "https://refugio-net.onrender.com"
     assert config.refugio_api_timeout_s == 5
     assert config.llm_timeout_s == 15
     assert config.clima_timeout_s == 8
