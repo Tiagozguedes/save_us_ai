@@ -4,12 +4,12 @@ Global Solution 2026/2 · CitizenTech · FIAP · Disruptive Architectures: IoT, 
 
 ## Integrantes
 
-| Nome | RM |
-|---|---|
-| Anna Clara Russo Luca | 561928 |
-| Gabriel Duarte Maciel | 565754 |
-| Tiago Guedes da Costa | 564731 |
-| Gustavo Tavares da Silva | 562827 |
+| Nome | RM | Turma |
+|---|---|---|
+| Anna Clara Russo Luca | 561928 | 2TDSPW |
+| Gabriel Duarte Maciel | 565754 | 2TDSPW |
+| Tiago Guedes da Costa | 564731 | 2TDSPW |
+| Gustavo Tavares da Silva | 562827 | 2TDSPW |
 
 ---
 
